@@ -93,6 +93,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     let cyldIsStereo = false;
     let cyldTextureWidth = 0;
     let cyldTextureHeight = 0;
+    let cyloffset = 0;
+    let cyldirection = 0.005;
 
     function initXR() {
       xrButton = new WebXRButton({
@@ -156,7 +158,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
       session.requestReferenceSpace('local').then((refSpace) => {
         xrRefSpace = refSpace;
-        projLayer = xrGLFactory.createProjectionLayer({ space: refSpace, stencil: false });
+        projLayer = xrGLFactory.createProjectionLayer({ depthFormat: gl.DEPTH_COMPONENT24, useDepthSorting: true });
         session.updateRenderState({ layers: [projLayer] });
 
         // Loading texture is async, create layer and update render state when done
@@ -200,6 +202,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     function onXRFrame(time, frame) {
       let pose = frame.getViewerPose(xrRefSpace);
       xrSession.requestAnimationFrame(onXRFrame);
+
+      if (cyldLayer !== null) {
+        cyldLayer.transform = new XRRigidTransform({z: cyldLayer.transform.position.z + cyldirection});
+
+        if (cyldLayer.transform.position.z <= 0)
+          cyldirection = .005;
+
+        if (cyldLayer.transform.position.z >= 2)
+          cyldirection = -.005;
+      }
 
       if (cyldLayer && cyldLayer.needsRedraw) {
         let glayer = xrGLFactory.getSubImage(cyldLayer, frame);
