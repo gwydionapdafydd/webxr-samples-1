@@ -383,7 +383,7 @@
           const pose = frame.getViewerPose(referenceSpace);
           if (pose) {
             renderer.getContext().clearColor(0, 0, 0, 1);
-            renderer.getContext().clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+            renderer.getContext().clear(renderer.getContext().COLOR_BUFFER_BIT | renderer.getContext().DEPTH_BUFFER_BIT);
             const ray = new XRRay(pose.transform);
 
             // Perform a JS-side hit test against mathematical (infinte) planes:
