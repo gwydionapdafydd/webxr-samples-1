@@ -382,7 +382,7 @@
 
           const pose = frame.getViewerPose(referenceSpace);
           if (pose) {
-            renderer.getContext().clearColor(0, 0, 0, 1);
+            renderer.getContext().clearColor(0, 0, 0, 0);
             renderer.getContext().clear(renderer.getContext().COLOR_BUFFER_BIT | renderer.getContext().DEPTH_BUFFER_BIT);
             const ray = new XRRay(pose.transform);
 
