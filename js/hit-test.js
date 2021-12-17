@@ -153,11 +153,11 @@ function hitTestPlane(frame, ray, plane, frameOfReference) {
     // parallel planes
     if(numerator < 0.0001 && numerator > -0.0001) {
       // contained in the plane
-      console.debug("Ray contained in the plane", plane);
+      //console.debug("Ray contained in the plane", plane);
       return { plane : plane };
     } else {
       // no hit
-      console.debug("No hit", plane);
+      //console.debug("No hit", plane);
       return null;
     }
   } else {
@@ -165,7 +165,7 @@ function hitTestPlane(frame, ray, plane, frameOfReference) {
     const d =  numerator / denominator;
     if(d < 0) {
       // no hit - plane-line intersection exists but not for half-line
-      console.debug("No hit", d, plane);
+      //console.debug("No hit", d, plane);
       return null;
     } else {
       const point = add(ray_origin, mul(ray_vector, d));  // hit test point coordinates in frameOfReference
