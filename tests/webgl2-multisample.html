@@ -131,8 +131,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           this.scene.drawViewArray(views);
 
           // Now bind the layer's framebuffer and blit the multisampled framebuffer over to it.
-          gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.multisampleFramebuffer);
           gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, layer.framebuffer);
+          gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this.multisampleFramebuffer);
 
           gl.blitFramebuffer(0, 0, this.renderbufferWidth, this.renderbufferHeight,
                              0, 0, this.renderbufferWidth, this.renderbufferHeight,
