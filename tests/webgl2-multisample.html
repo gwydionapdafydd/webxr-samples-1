@@ -106,6 +106,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           // Check to see if we need to resize the renderbuffer
           if (layer.framebufferWidth != this.renderbufferWidth ||
               layer.framebufferHeight != this.renderbufferHeight) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, this.multisampleFramebuffer);
             this.renderbufferWidth = layer.framebufferWidth;
             this.renderbufferHeight = layer.framebufferHeight;
 
