@@ -211,6 +211,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
         if (cyldLayer.transform.position.z >= 2)
           cyldirection = -.005;
+        
+        cyldLayer.opacity += 0.005;
+        if (cyldLayer.opacity <=  1)
+          cyldLayer.opacity = 0;
       }
 
       if (cyldLayer && cyldLayer.needsRedraw) {
