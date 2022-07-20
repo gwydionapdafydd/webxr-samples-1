@@ -150,6 +150,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       function onSessionStarted(session) {
         session.addEventListener('end', onSessionEnded);
         session.addEventListener('select', onSelect);
+        session.addEventListener('squeeze', onSqueeze);
 
         if (session.isImmersive && isARAvailable) {
           // When in 'immersive-ar' mode don't draw an opaque background because
@@ -200,6 +201,20 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         flower.anchor = anchor;
         anchoredObjects.push(flower);
 
+        if (anchor.uuid === undefined) {
+          anchor.requestPersistentHandle().then((uuid) => {
+            console.log("new anchor: " + uuid);
+            anchor.uuid = uuid;
+            if (localStorage.getItem("anchors") === null) {
+              localStorage.anchors = "[]";
+            }
+
+            let anchors = JSON.parse(localStorage.anchors);
+            anchors.push(uuid);
+            localStorage.anchors = JSON.stringify(anchors);
+          });
+        }
+
         // For performance reasons if we add too many objects start
         // removing the oldest ones to keep the scene complexity
         // from growing too much.
@@ -234,13 +249,52 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         }
       }
 
+      function onSqueeze(event) {
+        let frame = event.frame;
+        let session = frame.session;
+        if (anchoredObjects.length === 0)
+          return;
+
+        let objectToRemove = anchoredObjects.shift();
+        scene.removeNode(objectToRemove);
+        session.deletePersistentAnchor(objectToRemove.anchor.uuid).then(() => {
+          console.log("deleted anchor");
+          let anchors = [];
+          for (let x = 0; x < anchoredObjects.length; x++) {
+            anchors.push(anchoredObjects[x].anchor.uuid);
+          }
+          localStorage.anchors = JSON.stringify(anchors);
+        }).catch(err =>
+          console.log("failed to delete anchor: " + err)
+        );
+      }
+
       // Called every time a XRSession requests that a new frame be drawn.
+      let first_time = true;
       function onXRFrame(t, frame) {
         let session = frame.session;
         let xrRefSpace = session.isImmersive ?
                          xrImmersiveRefSpace :
                          inlineViewerHelper.referenceSpace;
         let pose = frame.getViewerPose(xrRefSpace);
+
+        if (session.isImmersive && first_time) {
+          first_time = false;
+          if (localStorage.getItem("anchors") !== null) {
+            let anchors = JSON.parse(localStorage.anchors);
+            for (let i = 0; i < anchors.length; i++) {
+              let uuid = anchors[i];
+              session.restorePersistentAnchor(uuid).then((anchor) => {
+                console.log("restored anchor");
+                anchor.uuid = uuid;
+                addAnchoredObjectToScene(anchor);
+
+              }).catch(err =>
+                console.log("failed to restore anchor: " + err)
+              );
+            }
+          }
+        }
 
         // Update the position of all the anchored objects based on the currently reported positions of their anchors
         const tracked_anchors = frame.trackedAnchors;
