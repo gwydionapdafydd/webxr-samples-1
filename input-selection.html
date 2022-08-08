@@ -203,6 +203,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           for (let box of boxes) {
             if (hitResult.node == box.node) {
               let i = (ev.inputSource.handedness == "left") ? 0 : 1;
+              ev.inputSource.gamepad.vibrationActuator.pulse(1.0, 200);
               currently_selected_boxes[i] = box;
               box.scale = [1.25, 1.25, 1.25];
               box.selected = false;
@@ -212,7 +213,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       }
       function onSelectEnd(ev) {
         let i = (ev.inputSource.handedness == "left") ? 0 : 1;
-        let currently_selected_box = currently_selected_boxes[i];  
+        let currently_selected_box = currently_selected_boxes[i];
         console.log("selectend " + currently_selected_box);
         if (currently_selected_box != null) {
           if (currently_selected_box.selected) {
@@ -228,7 +229,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       }
       function onSelect(ev) {
         let i = (ev.inputSource.handedness == "left") ? 0 : 1;
-        let currently_selected_box = currently_selected_boxes[i];  
+        let currently_selected_box = currently_selected_boxes[i];
         console.log("select " + currently_selected_box);
         if (currently_selected_box != null) {
           // Change the box color to something random.
@@ -266,7 +267,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       }
       function onSqueezeEnd(ev) {
         let i = (ev.inputSource.handedness == "left") ? 0 : 1;
-        let currently_grabbed_box = currently_grabbed_boxes[i];  
+        let currently_grabbed_box = currently_grabbed_boxes[i];
         console.log("squeezeend " + currently_grabbed_box);
         if (currently_grabbed_box != null && currently_grabbed_box.grabbed) {
           // the scale of 'grabbed' box is 0.1. Restore the original scale.
@@ -278,7 +279,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       }
       function onSqueeze(ev) {
         let i = (ev.inputSource.handedness == "left") ? 0 : 1;
-        let currently_grabbed_box = currently_grabbed_boxes[i];  
+        let currently_grabbed_box = currently_grabbed_boxes[i];
         console.log("squeeze " + currently_grabbed_box);
         if (currently_grabbed_box != null && currently_grabbed_box.grabbed) {
           // Change the box color to something random, so we can see that 'squeeze' was invoked.
