@@ -203,7 +203,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           for (let box of boxes) {
             if (hitResult.node == box.node) {
               let i = (ev.inputSource.handedness == "left") ? 0 : 1;
-              ev.inputSource.gamepad.vibrationActuator.pulse(1.0, 200);
+              ev.inputSource.gamepad.vibrationActuator.pulse(1.0, 5);
               currently_selected_boxes[i] = box;
               box.scale = [1.25, 1.25, 1.25];
               box.selected = false;
