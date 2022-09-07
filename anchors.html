@@ -102,10 +102,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             isARAvailable = supported;
             xrButton.enabled = supported;
             if (!supported) {
-              navigator.xr.isSessionSupported('immersive-vr').then((supported) => {
-                isVRAvailable = supported;
-                xrButton.enabled = supported;
-              });
+              isVRAvailable = false;
+              xrButton.enabled = false;
             } else {
               xrSessionString = 'immersive-ar';
             }
