@@ -313,8 +313,6 @@
           mesh.visible = false;
           mesh.matrixAutoUpdate = false;
 
-          console.log (intersection.uv.x + " " + intersection.uv.y);
-
           // Reticle matrix is expressed relative to `referenceSpace`, but we need to
           // pass a pose relative to the plane space. Luckily, our JS-side hit test
           // contains that information as well.
@@ -486,6 +484,7 @@
 
               if (planeContext.timestamp < plane.lastChangedTime) {
                 // updated!
+                console.log ("plane updated");
                 planeContext.timestamp = plane.lastChangedTime;
 
                 const geometry = createGeometryFromPolygon(plane.polygon);
