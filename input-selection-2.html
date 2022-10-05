@@ -244,6 +244,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
       function onSqueezeStart(ev) {
         console.log("squeezestart " + currently_grabbed_boxes);
+        if (ev.frame.session.showKeyboard) {
+          ev.frame.session.showKeyboard();
+        }
         let refSpace = ev.frame.session.isImmersive ?
                          xrImmersiveRefSpace :
                          inlineViewerHelper.referenceSpace;
