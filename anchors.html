@@ -86,13 +86,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       let all_previous_anchors = new Set();
 
       function initXR() {
-        xrButton = new WebXRButton({
-          onRequestSession: onRequestSession,
-          onEndSession: onEndSession,
-          textEnterXRTitle: isARAvailable ? "START AR" : "START VR",
-          textXRNotFoundTitle: isARAvailable ? "AR NOT FOUND" : "VR NOT FOUND",
-          textExitXRTitle: isARAvailable ? "EXIT  AR" : "EXIT  VR",
-        });
         document.querySelector('header').appendChild(xrButton.domElement);
 
         if (navigator.xr) {
@@ -100,6 +93,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           // and only enables the button if so.
           navigator.xr.isSessionSupported('immersive-ar').then((supported) => {
             isARAvailable = supported;
+            xrButton = new WebXRButton({
+              onRequestSession: onRequestSession,
+              onEndSession: onEndSession,
+              textEnterXRTitle: isARAvailable ? "START AR" : "START VR",
+              textXRNotFoundTitle: isARAvailable ? "AR NOT FOUND" : "VR NOT FOUND",
+              textExitXRTitle: isARAvailable ? "EXIT  AR" : "EXIT  VR",
+            });
+            
             xrButton.enabled = supported;
             if (!supported) {
               isVRAvailable = false;
