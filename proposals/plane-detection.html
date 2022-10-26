@@ -21,11 +21,14 @@
         including implementation of synchronous hit test in JavaScript
         leveraging obtained plane data and anchors API to position objects.
         <p>
-          <input id="usePlaneOrigin" type="checkbox">
+          <input id="usePlaneOrigin" type="checkbox" checked>
           <label for="usePlaneOrigin">Plane coordinate system visible</label><br/>
 
           <input id="useDomOverlay" type="checkbox">
           <label for="useDomOverlay">Enable DOM Overlay</label><br/>
+
+          <input id="useRoomCapture" type="checkbox" checked>
+          <label for="useRoomCapture">Start room capture if no planes are known</label><br/>
 
           <a class="back" href="./index.html">Back</a>
         </p>
@@ -69,6 +72,8 @@
       let camera, scene, renderer;
       let controller1, controller2;
 			let controllerGrip1, controllerGrip2;
+      let startTime;
+      let launchedCapture = false;
 
 			const intersected = [];
 			const tempMatrix = new THREE.Matrix4();
@@ -217,15 +222,24 @@
         });
       }
 
+      function onVisibilityChange(event) {
+      console.log("Visibility change for "
+        + (event.session.isImmersive ? "immersive" : "non-immersive")
+        + " session: "
+        + event.session.visibilityState);
+      }
+
       function onSessionStarted(session) {
         useDomOverlay.disabled = true;
         session.addEventListener('end', onSessionEnded);
         session.addEventListener('select', onSelect);
+        session.addEventListener('visibilitychange', onVisibilityChange);
 
         renderer.xr.setReferenceSpaceType('local');
         renderer.xr.setSession(session);
 
         renderer.setAnimationLoop(render);
+        startTime = new Date();
       }
 
       function onEndSession(session) {
@@ -535,6 +549,13 @@
       }
 
       function render(timestamp, frame) {
+
+        if ((frame.detectedPlanes.size === 0) && useRoomCapture.checked && ((new Date() - startTime) > 1000) && (launchedCapture === false)) {
+          if (frame.session.initiateRoomCapture) {
+            frame.session.initiateRoomCapture();
+          }
+          launchedCapture = true;
+        }
         if (frame) {
           cached_frame = frame;
           processAnchors(timestamp, frame);
