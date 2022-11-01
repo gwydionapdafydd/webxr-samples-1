@@ -265,9 +265,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         if (anchoredObjects.length === 0)
           return;
 
-        let objectToRemove = anchoredObjects.shift();
-        scene.removeNode(objectToRemove);
+        let objectToRemove = anchoredObjects[0];
         session.deletePersistentAnchor(objectToRemove.anchor.uuid).then(() => {
+          anchoredObjects.shift();
+          scene.removeNode(objectToRemove);
           console.log("deleted anchor");
           let anchors = [];
           for (let x = 0; x < anchoredObjects.length; x++) {
