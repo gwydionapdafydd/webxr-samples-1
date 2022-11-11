@@ -62,6 +62,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     let xrRefSpace = null;
     let xrGLFactory = null;
     let xrFramebuffer = null;
+    let counter = 0;
 
     // WebGL scene globals.
     let gl = null;
@@ -162,7 +163,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           currentFillStyle = fillStyles[Math.floor(Math.random() * fillStyles.length)];
         };
         document.body.appendChild(textField);
-        
+
         canvas = document.createElement('canvas');
         canvas.width = cyldTextureWidth;
         canvas.height = cyldTextureHeight;
@@ -197,6 +198,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     function onXRFrame(time, frame) {
       let pose = frame.getViewerPose(xrRefSpace);
       xrSession.requestAnimationFrame(onXRFrame);
+
+      if (xrSession.positionKeyboard) {
+        xrSession.positionKeyboard(counter++/100, 1);
+      }
 
       renderingContext = canvas.getContext('2d');
       renderingContext.font = '48px serif';
