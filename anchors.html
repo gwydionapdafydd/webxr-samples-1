@@ -99,7 +99,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
               textExitXRTitle: isARAvailable ? "EXIT  AR" : "EXIT  VR",
             });
             document.querySelector('header').appendChild(xrButton.domElement);
-            
+
             xrButton.enabled = supported;
             if (!supported) {
               isVRAvailable = false;
@@ -291,6 +291,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
         if (session.isImmersive && first_time) {
           first_time = false;
+          if (session.persistentAnchors) {
+            let anchors = session.persistentAnchors;
+            console.log("known anchors:")
+            for (let i = 0; i < anchors.length; i++) {
+              console.log(i + ": " + anchors[i]);
+            }
+          }
           if (localStorage.getItem("anchors") !== null) {
             let anchors = JSON.parse(localStorage.anchors);
             for (let i = 0; i < anchors.length; i++) {
