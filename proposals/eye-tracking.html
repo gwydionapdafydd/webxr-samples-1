@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js vr - dragging</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+		<link type="text/css" rel="stylesheet" href="../css/main.css">
+	</head>
+	<body>
+
+		<div id="info">
+			<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> vr - dragging
+		</div>
+
+		<!-- Import maps polyfill -->
+		<!-- Remove this when import maps will be widely supported -->
+		<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+
+        <script type="importmap">
+            {
+                "imports": {
+                    "three": "https://unpkg.com/three@0.146.0/build/three.module.js",
+                    "three/addons/": "https://unpkg.com/three@0.146.0/examples/jsm/"
+                }
+            }
+            </script>
+
+		<script type="module">
+
+			import * as THREE from 'three';
+			import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+			import { ARButton } from 'three/addons/webxr/ARButton.js';
+			import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFactory.js';
+
+			let container;
+			let camera, scene, renderer;
+			let controller1, controller2;
+			let controllerGrip1, controllerGrip2;
+			let eye_group, left_eye_line, right_eye_line, left_box, right_box;
+			let left_eye, right_eye, face_group, eye_material, mouth_material, body_group;
+			let viewed_object = null;
+
+			let raycaster;
+
+			const intersected = [];
+			const tempMatrix = new THREE.Matrix4();
+
+			let controls, group, plane_group;
+
+			const planeMaterials = [];
+			const lineMaterials = [
+				new THREE.LineBasicMaterial({color: 0xff0000}),
+				new THREE.LineBasicMaterial({color: 0x00ff00}),
+				new THREE.LineBasicMaterial({color: 0x0000ff}),
+			];
+
+			const lineGeometries = [
+				new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(5,0,0)]),
+				new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(0,5,0)]),
+				new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,5)]),
+			];
+
+			init();
+			animate();
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				scene = new THREE.Scene();
+				//scene.background = new THREE.Color( 0x808080 );
+
+				camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 0.1, 10 );
+				camera.position.set( 0, 1.6, 3 );
+
+				controls = new OrbitControls( camera, container );
+				controls.target.set( 0, 1.6, 0 );
+				controls.update();
+
+				const floorGeometry = new THREE.PlaneGeometry( 4, 4 );
+				const floorMaterial = new THREE.MeshStandardMaterial( {
+					color: 0xeeeeee,
+					roughness: 1.0,
+					metalness: 0.0
+				} );
+				const floor = new THREE.Mesh( floorGeometry, floorMaterial );
+				floor.rotation.x = - Math.PI / 2;
+				floor.receiveShadow = true;
+				//scene.add( floor );
+
+				scene.add( new THREE.HemisphereLight( 0x808080, 0x606060 ) );
+
+				const light = new THREE.DirectionalLight( 0xffffff );
+				light.position.set( 0, 6, 0 );
+				light.castShadow = true;
+				light.shadow.camera.top = 2;
+				light.shadow.camera.bottom = - 2;
+				light.shadow.camera.right = 2;
+				light.shadow.camera.left = - 2;
+				light.shadow.mapSize.set( 4096, 4096 );
+				scene.add( light );
+
+				group = new THREE.Group();
+				scene.add( group );
+				plane_group = new THREE.Group();
+				scene.add( plane_group );
+
+				const geometries = [
+					new THREE.BoxGeometry( 0.2, 0.2, 0.2 ),
+					new THREE.ConeGeometry( 0.2, 0.2, 64 ),
+					new THREE.CylinderGeometry( 0.2, 0.2, 0.2, 64 ),
+					new THREE.IcosahedronGeometry( 0.2, 8 ),
+					new THREE.TorusGeometry( 0.2, 0.04, 64, 32 )
+				];
+
+				for ( let i = 0; i < 20; i ++ ) {
+
+					const geometry = geometries[ Math.floor( Math.random() * geometries.length ) ];
+					const material = new THREE.MeshStandardMaterial( {
+						color: Math.random() * 0xffffff,
+						roughness: 0.7,
+						metalness: 0.0
+					} );
+
+					const object = new THREE.Mesh( geometry, material );
+
+					object.position.x = Math.random() * 4 - 2;
+					object.position.y = Math.random() * 2;
+					object.position.z = Math.random() * 4 - 2;
+
+					object.rotation.x = Math.random() * 2 * Math.PI;
+					object.rotation.y = Math.random() * 2 * Math.PI;
+					object.rotation.z = Math.random() * 2 * Math.PI;
+
+					object.scale.setScalar( Math.random() + 0.5 );
+
+					object.castShadow = true;
+					object.receiveShadow = true;
+
+					group.add( object );
+
+				}
+
+				left_box = new THREE.Mesh( geometries[0], new THREE.MeshStandardMaterial( {
+						color: 0xff0000,
+						roughness: 0.7,
+						metalness: 0.0
+					} ) );
+				left_box.scale.setScalar(  0.1 );
+				scene.add( left_box );
+
+				//
+				const conegeometry = new THREE.ConeGeometry( 0.02, 2, 32 );
+				const conematerial = new THREE.MeshStandardMaterial( {
+						color: Math.random() * 0xffffff,
+						roughness: 0.7,
+						metalness: 0.0
+					} );
+
+				//
+
+				renderer = new THREE.WebGLRenderer( { antialias: true, alpha: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.outputEncoding = THREE.sRGBEncoding;
+				renderer.shadowMap.enabled = true;
+				renderer.xr.enabled = true;
+				container.appendChild( renderer.domElement );
+
+				document.body.appendChild( ARButton.createButton( renderer ) );
+
+				const loadManager = new THREE.LoadingManager();
+				const loader = new THREE.TextureLoader(loadManager);
+				const gridTexture = loader.load('https://raw.githubusercontent.com/google-ar/arcore-android-sdk/c684bbda37e44099c273c3e5274fae6fccee293c/samples/hello_ar_c/app/src/main/assets/models/trigrid.png');
+				gridTexture.wrapS = THREE.RepeatWrapping;
+				gridTexture.wrapT = THREE.RepeatWrapping;
+
+				const createPlaneMaterial = (params) =>
+				new THREE.MeshBasicMaterial(Object.assign(params, {
+					map: gridTexture,
+					opacity: 0.5,
+					transparent: true,
+				}));
+				planeMaterials.push(createPlaneMaterial({color: 0xff0000}));
+				planeMaterials.push(createPlaneMaterial({color: 0x00ff00}));
+				planeMaterials.push(createPlaneMaterial({color: 0x0000ff}));
+				planeMaterials.push(createPlaneMaterial({color: 0xffff00}));
+				planeMaterials.push(createPlaneMaterial({color: 0x00ffff}));
+        		planeMaterials.push(createPlaneMaterial({color: 0xff00ff}));
+
+				// eyes
+				face_group = new THREE.Group();
+				scene.add( face_group );
+				face_group.position.z = - .5;
+				face_group.rotateY(Math.PI);
+
+				let eye_texture = new THREE.TextureLoader().load('../media/textures/eye.png');
+				eye_material = new THREE.MeshBasicMaterial({
+					map: eye_texture,
+					overdraw: 0.1
+				});
+
+				mouth_material = new THREE.LineBasicMaterial( { color: 0xff1493 } );
+
+				// controllers
+
+				controller1 = renderer.xr.getController( 0 );
+				controller1.addEventListener( 'selectstart', onSelectStart );
+				controller1.addEventListener( 'selectend', onSelectEnd );
+				scene.add( controller1 );
+
+				controller2 = renderer.xr.getController( 1 );
+				controller2.addEventListener( 'selectstart', onSelectStart );
+				controller2.addEventListener( 'selectend', onSelectEnd );
+				scene.add( controller2 );
+
+				const controllerModelFactory = new XRControllerModelFactory();
+
+				controllerGrip1 = renderer.xr.getControllerGrip( 0 );
+				controllerGrip1.add( controllerModelFactory.createControllerModel( controllerGrip1 ) );
+				scene.add( controllerGrip1 );
+
+				controllerGrip2 = renderer.xr.getControllerGrip( 1 );
+				controllerGrip2.add( controllerModelFactory.createControllerModel( controllerGrip2 ) );
+				scene.add( controllerGrip2 );
+
+				//
+
+				const geometry = new THREE.BufferGeometry().setFromPoints( [ new THREE.Vector3( 0, 0, 0 ), new THREE.Vector3( 0, 0, - 1 ) ] );
+
+				const line = new THREE.Line( geometry );
+				line.name = 'line';
+				line.scale.z = 5;
+
+				controller1.add( line.clone() );
+				controller2.add( line.clone() );
+
+				raycaster = new THREE.Raycaster();
+
+				left_eye_line = new THREE.Mesh( new THREE.BoxGeometry( 0.0002, 0.0002, 12 ));
+				left_eye_line.name = 'left_eye_line';
+				left_eye_line.position.x = 1;
+				left_eye_line.position.y = 1;
+				left_eye_line.position.z = 1;
+				left_eye_line.scale.setScalar(1);
+				left_eye_line.visible = false;
+				scene.add( left_eye_line );
+
+				window.addEventListener( 'resize', onWindowResize );
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function onSelectStart( event ) {
+
+				const controller = event.target;
+
+				const intersections = getIntersections( controller );
+
+				if ( intersections.length > 0 ) {
+
+					const intersection = intersections[ 0 ];
+
+					const object = intersection.object;
+					object.material.emissive.b = 1;
+					controller.attach( object );
+
+					controller.userData.selected = object;
+
+				}
+
+			}
+
+			function onSelectEnd( event ) {
+
+				const controller = event.target;
+
+				if ( controller.userData.selected !== undefined ) {
+
+					const object = controller.userData.selected;
+					object.material.emissive.b = 0;
+					group.attach( object );
+
+					controller.userData.selected = undefined;
+
+				}
+
+
+			}
+
+			function getIntersections( controller ) {
+
+				tempMatrix.identity().extractRotation( controller.matrixWorld );
+
+				raycaster.ray.origin.setFromMatrixPosition( controller.matrixWorld );
+				raycaster.ray.direction.set( 0, 0, - 1 ).applyMatrix4( tempMatrix );
+
+				return raycaster.intersectObjects( group.children, false );
+
+			}
+
+			function intersectObjects( controller ) {
+
+				// Do not highlight when already selected
+
+				if ( controller.userData.selected !== undefined ) return;
+
+				const line = controller.getObjectByName( 'line' );
+				const intersections = getIntersections( controller );
+
+				if ( intersections.length > 0 ) {
+
+					const intersection = intersections[ 0 ];
+
+					const object = intersection.object;
+					if (object.material.emissive !== undefined) {
+						object.material.emissive.r = 1;
+						intersected.push( object );
+					}
+
+					line.scale.z = intersection.distance;
+
+				} else {
+
+					line.scale.z = 5;
+
+				}
+
+			}
+
+			function cleanIntersected() {
+
+				while ( intersected.length ) {
+
+					const object = intersected.pop();
+					object.material.emissive.r = 0;
+
+				}
+
+			}
+
+			//
+
+			function animate() {
+
+				renderer.setAnimationLoop( render );
+
+			}
+
+			function render(timestamp) {
+
+				if (renderer.xr.isPresenting) {
+					let frame = renderer.xr.getFrame();
+
+                    if (frame.session.leftEye && frame.session.rightEye) {
+
+                        let left_eye_geometry = new THREE.SphereGeometry(0.02, 30, 30, Math.PI, Math.PI);
+                        let right_eye_geometry = new THREE.SphereGeometry(0.02, 30, 30, Math.PI, Math.PI);
+
+                        face_group.clear();
+                        left_eye = new THREE.Mesh(left_eye_geometry, eye_material);
+                        face_group.add( left_eye );
+
+                        right_eye = new THREE.Mesh(right_eye_geometry, eye_material);
+                        face_group.add( right_eye );
+
+                        let transform = frame.getPose(frame.session.leftEye, renderer.xr.getReferenceSpace()).transform;
+
+                        left_eye.position.x = transform.position.x;
+                        left_eye.position.y = transform.position.y;
+                        left_eye.position.z = transform.position.z;
+                        left_eye.quaternion.x = transform.orientation.x;
+                        left_eye.quaternion.y = transform.orientation.y;
+                        left_eye.quaternion.z = transform.orientation.z;
+                        left_eye.quaternion.w = transform.orientation.w;
+
+                        transform = frame.getPose(frame.session.rightEye, renderer.xr.getReferenceSpace()).transform;
+                        right_eye.position.x = transform.position.x;
+                        right_eye.position.y = transform.position.y;
+                        right_eye.position.z = transform.position.z;
+                        right_eye.quaternion.x = transform.orientation.x;
+                        right_eye.quaternion.y = transform.orientation.y;
+                        right_eye.quaternion.z = transform.orientation.z;
+                        right_eye.quaternion.w = transform.orientation.w;
+                    }
+                }
+
+				cleanIntersected();
+
+				intersectObjects( controller1 );
+				intersectObjects( controller2 );
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+	</body>
+</html>
