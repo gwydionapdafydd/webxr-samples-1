@@ -1,0 +1,24 @@
+<html>
+<body>
+
+<input
+       type="text"
+       id="myText"
+       name="myText"
+       value="test text yay"
+       onfocus="console.log('myText onfocus called: ' + this.value);"
+       onblur="console.log('myText onblur called: ' + this.value);"
+       onchange   = "console.log('myText onchange called: ' + this.value);"
+       onkeypress = "console.log('myText onkeypress called: ' + this.value');"
+       onpaste    = "console.log('myText onpaste called: ' + this.value);"
+       oninput    = "console.log('myText oninput called: ' + this.value);">
+
+<script>
+function myTextFocus() {
+  document.getElementById("myText").focus();
+}
+window.setTimeout(myTextFocus, 5*60*1000);
+</script>
+
+</body>
+</html>
