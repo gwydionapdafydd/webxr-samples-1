@@ -92,6 +92,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           });
 
           navigator.xr.requestSession('inline').then(onSessionStarted);
+          if (navigator.xr.offerSession !== undefined) {
+            navigator.xr.offerSession('immersive-vr', {
+              requiredFeatures: ['local-floor']
+            }).then((session) => {
+              xrButton.setSession(session);
+              session.isImmersive = true;
+              onSessionStarted(session);
+            });
+          }
         }
       }
 
