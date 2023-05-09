@@ -85,15 +85,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         buffer[i] = value;
       }
 
-      let yodelBuffer;
-      const URL = 'beat.mp3';
-      const context = new AudioContext();
+      let banjoBuffer;
+      const URL = 'banjo_haptic.mp3';
+      const context = new AudioContext({'sampleRate': 3000});
 
       window.fetch(URL)
         .then(response => response.arrayBuffer())
         .then(arrayBuffer => context.decodeAudioData(arrayBuffer))
         .then(audioBuffer => {
-          yodelBuffer = audioBuffer;
+          banjoBuffer = audioBuffer;
         });
       // WebGL scene globals.
       let gl = null;
@@ -224,15 +224,19 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           return;
         }
 
+        let audio_buffer = new AudioBuffer({'sampleRate': 3000, 'length': buffer.byteLength});
+        audio_buffer.copyToChannel(buffer, 0);
+        ev.inputSource.gamepad.hapticActuators[0].playPCM((ev.inputSource.handedness == "left") ? audio_buffer : banjoBuffer);
+
         let hitResult = scene.hitTest(targetRayPose.transform);
         if (hitResult) {
           // Check to see if the hit result was one of our boxes.
           for (let box of boxes) {
             if (hitResult.node == box.node) {
               let i = (ev.inputSource.handedness == "left") ? 0 : 1;
-              let audio_buffer = new AudioBuffer({'sampleRate': 3000, 'length': buffer.byteLength});
-              audio_buffer.copyToChannel(buffer, 0);
-              ev.inputSource.gamepad.hapticActuators[0].playPCM(audio_buffer);
+//              let audio_buffer = new AudioBuffer({'sampleRate': 3000, 'length': buffer.byteLength});
+//              audio_buffer.copyToChannel(buffer, 0);
+//              ev.inputSource.gamepad.hapticActuators[0].playPCM(audio_buffer/*banjoBuffer*/);
               currently_selected_boxes[i] = box;
               box.scale = [1.25, 1.25, 1.25];
               box.selected = false;
