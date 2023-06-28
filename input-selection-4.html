@@ -97,8 +97,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         .then(arrayBuffer => context.decodeAudioData(arrayBuffer))
         .then(audioBuffer => {banjoBuffer = audioBuffer;})
       ;
-      const bytes = banjoBuffer.byteLength;
-console.log('banjoBuffer:', bytes);
+      const frames = banjoBuffer.length;
+console.log('banjoBuffer:', frames);
       
       // WebGL scene globals.
       let gl = null;
