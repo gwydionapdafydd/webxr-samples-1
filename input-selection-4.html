@@ -89,6 +89,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       
       const URL = 'banjo_haptic_8k.wav';
       const context = new AudioContext({'sampleRate': 8000});
+      context.resume;
 
       window.fetch(URL)
         .then(response => response.arrayBuffer())
@@ -96,7 +97,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         .then(arrayBuffer => context.decodeAudioData(arrayBuffer))
         .then(audioBuffer => {banjoBuffer = audioBuffer;})
       ;
-console.log('banjoBuffer:', banjoBuffer.byteLength);
+console.log('banjoBuffer:', banjoBuffer.length);
       
       // WebGL scene globals.
       let gl = null;
